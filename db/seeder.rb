@@ -16,6 +16,7 @@ end
 
 def drop_tables(db)
   db.execute('DROP TABLE IF EXISTS resor')
+  db.execute('DROP TABLE IF EXISTS users')
 end
 
 def create_tables(db)
@@ -24,10 +25,18 @@ def create_tables(db)
               name TEXT NOT NULL, 
               tags TEXT,
               owner INTEGER)')
+
+   db.execute('CREATE TABLE users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                u_name TEXT NOT NULL,
+                pwd_digest TEXT NOT NULL
+            )')
+         
 end
 
 def populate_tables(db)
   db.execute('INSERT INTO resor (name, tags, owner) VALUES ("Camping", "skogen", 1)')
+  db.execute('INSERT INTO users (u_name, pwd_digest) VALUES ("jobb", "hej51515")')
   
 end
 
