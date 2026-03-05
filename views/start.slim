@@ -1,9 +1,22 @@
 
+form action="/resor/new" method="post"
+ input type="text" name="res_name" placeholder="Namnge en ny resa"
+ input type="text" name="tag" placeholder="tags"
+ input type="submit" value="Lägg till"
 
 - @data.each do |datapunkt|
-    h3 #{datapunkt["name"]}
-    h4 #{datapunkt["tags"]}
-    h4 #{datapunkt["u_name"]}
+    hr
+    h2 #{datapunkt["name"]}
+    - if @owner == datapunkt["owner"]
+        h4 skapad av dig
+    -else
+        h4 skapad av: #{datapunkt["u_name"]}
+    h4 Tags: #{datapunkt["tags"]}  
+    - if @owner == datapunkt["owner"]
+         form action="/resor/#{datapunkt["id"]}/edit" method="get" 
+          input type="submit" value="ändra"
+         form action="/resor/#{datapunkt["id"]}/delete" method="post" 
+          input type="submit" value="Ta bort"
     hr
 
     

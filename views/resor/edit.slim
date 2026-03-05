@@ -1,0 +1,10 @@
+h2 Updatera resan
+
+form action="/resor/#{@selected_todo["id"]}/update" method="post" 
+    h3 Namn
+    input type="text" name="name" value="#{@selected_todo["name"]}"
+    hr
+    h3 Beskrivning
+    input type="text" name="description" value="#{@selected_todo["description"]}"
+    hr 
+    input type="submit" value="updatera"

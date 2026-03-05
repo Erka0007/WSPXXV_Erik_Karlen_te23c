@@ -28,6 +28,18 @@ post("/user") do
     if pwd==pwd_confirm
       pwd_digest=BCrypt::Password.create(pwd)
       db.execute("INSERT INTO users (u_name, pwd_digest) VALUES (?,?)",[user, pwd_digest])
+
+      result2 = db.execute("SELECT id,pwd_digest FROM users WHERE u_name=?",user)
+  
+      if result2.empty?
+        redirect('/error')
+      end
+      user_id = result2.first["id"]
+      session[:user_id] = user_id
+
+
+      
+    
       redirect('/welcome')
     else
       redirect('/error')
@@ -64,8 +76,26 @@ get("/welcome") do
   db = data("db/databas.db")
   @data = db.execute("SELECT * FROM resor
   INNER JOIN users ON resor.owner = users.id")
+  @owner = session[:user_id]
   p "hej #{session[:user_id]}"
   slim(:start)
 end  
 
+post("/resor/new") do
+  res_name = params[:res_name] # Hämta datan ifrån formuläret
+  tag = params[:tag]
+  owner = session[:user_id]
+  db = SQLite3::Database.new('db/databas.db') # koppling till databasen
+  db.execute("INSERT INTO resor (name, tags, owner) VALUES (?,?,?)",[res_name, tag, owner])
+  redirect('/welcome') # Hoppa till routen som visar upp alla frukter
+ 
+end
 
+get("/resor/:id/edit") do
+  id = params[:id].to_i
+  db = SQLite3::Database.new("db/databas.db")
+  db.results_as_hash = true
+  @selected_resor = db.execute("SELECT * FROM resor WHERE id = ?", id).first
+  slim(:"todos/edit")
+
+end

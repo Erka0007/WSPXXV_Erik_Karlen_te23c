@@ -36,7 +36,7 @@ end
 
 def populate_tables(db)
   db.execute('INSERT INTO resor (name, tags, owner) VALUES ("Camping", "skogen", 1)')
-  db.execute('INSERT INTO users (u_name, pwd_digest) VALUES ("jobb", "hej51515")')
+
   
 end
 
