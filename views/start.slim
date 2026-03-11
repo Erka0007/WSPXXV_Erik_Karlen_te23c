@@ -1,4 +1,6 @@
-
+form action="/" method="get" 
+    input type="submit" value="Logga ut"
+hr
 form action="/resor/new" method="post"
  input type="text" name="res_name" placeholder="Namnge en ny resa"
  input type="text" name="tag" placeholder="tags"
@@ -15,6 +17,7 @@ form action="/resor/new" method="post"
     - if @owner == datapunkt["owner"]
          form action="/resor/#{datapunkt["id"]}/edit" method="get" 
           input type="submit" value="ändra"
+         
          form action="/resor/#{datapunkt["id"]}/delete" method="post" 
           input type="submit" value="Ta bort"
     hr

@@ -27,7 +27,7 @@ def create_tables(db)
               owner INTEGER)')
 
    db.execute('CREATE TABLE users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                u_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 u_name TEXT NOT NULL,
                 pwd_digest TEXT NOT NULL
             )')
