@@ -17,6 +17,7 @@ end
 def drop_tables(db)
   db.execute('DROP TABLE IF EXISTS resor')
   db.execute('DROP TABLE IF EXISTS users')
+  db.execute('DROP TABLE IF EXISTS resor_users')
 end
 
 def create_tables(db)
@@ -26,12 +27,23 @@ def create_tables(db)
               tags TEXT,
               owner INTEGER)')
 
-   db.execute('CREATE TABLE users (
+  db.execute('CREATE TABLE users (
                 u_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 u_name TEXT NOT NULL,
                 pwd_digest TEXT NOT NULL
             )')
-         
+
+  db.execute('CREATE TABLE resor_users (
+            id INTEGER,
+            u_id INTEGER,
+            PRIMARY KEY (id, u_id),
+
+            FOREIGN KEY (id) REFERENCES resor(id)
+                ON DELETE CASCADE,
+            FOREIGN KEY (u_id) REFERENCES users(u_id)
+                ON DELETE CASCADE
+            
+              )') 
 end
 
 def populate_tables(db)

@@ -13,6 +13,8 @@ form action="/resor/new" method="post"
         h4 skapad av dig
     -else
         h4 skapad av: #{datapunkt["u_name"]}
+        form action="/resor/#{datapunkt["id"]}/join" method="get" 
+          input type="submit" value="Gå med"
     h4 Tags: #{datapunkt["tags"]}  
     - if @owner == datapunkt["owner"]
          form action="/resor/#{datapunkt["id"]}/edit" method="get" 
