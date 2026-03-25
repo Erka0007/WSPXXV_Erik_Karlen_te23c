@@ -74,7 +74,9 @@ get("/welcome") do
   db = data("db/databas.db")
   @data = db.execute("SELECT * FROM resor
   INNER JOIN users ON resor.owner = users.u_id")
-  @persons = db.execute("SELECT resor.id, users.u_id FROM resor_users")
+
+  @persons = db.execute("SELECT id, u_name FROM resor_users
+  INNER JOIN users ON resor_users.u_id = users.u_id")
   @owner = session[:user_id]
   p "hej #{session[:user_id]}"
   slim(:start)
@@ -108,16 +110,37 @@ post("/resor/:id/update") do
 end
 
 post("/resor/:id/delete") do
+  db = SQLite3::Database.new("db/databas.db")
+  user = session[:user_id].to_i
+  resa = params[:id].to_i
+  owner = db.execute("SELECT owner FROM resor WHERE id=?", resa).first[0]
+
+  if owner == user
+    db.execute("DELETE FROM resor WHERE id = ?", resa)
+    redirect('/welcome')
+  else
+    redirect('/error')
+  end
+  
+end
+
+get("/resor/:id/info") do
   db = data("db/databas.db")
-  denna_ska_bort = params[:id].to_i
-  db.execute("DELETE FROM resor WHERE id = ?", denna_ska_bort)
-  redirect('/welcome')
+  resa = params[:id].to_i
+  @persons = db.execute("SELECT id, u_name FROM resor_users
+  INNER JOIN users ON resor_users.u_id = users.u_id WHERE id = ?", resa)
+  slim(:"resor/info")
 end
 
 get("/resor/:id/join") do
   db = data("db/databas.db")
   resa = params[:id].to_i
   user_join = session[:user_id]
-  db.execute("INSERT INTO resor_users (id, u_id) VALUES (?,?)",[resa, user_join])
+
+  verify = db.execute("SELECT * FROM resor_users WHERE id = ? AND u_id = ?", [resa, user_join])
+  if verify.empty?
+    db.execute("INSERT INTO resor_users (id, u_id) VALUES (?,?)",[resa, user_join])
+  end
+
   redirect('/welcome')
 end
