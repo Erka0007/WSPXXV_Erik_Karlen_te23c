@@ -68,6 +68,7 @@ def delete(resa)
   db = data("db/databas.db")
   db.execute("DELETE FROM resor WHERE id = ?", resa)
 end
+
 def delete_user(user)
   db = data("db/databas.db")
   db.execute("DELETE FROM users WHERE u_id = ?", user)

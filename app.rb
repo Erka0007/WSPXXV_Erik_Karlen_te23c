@@ -76,14 +76,17 @@ post("/login") do
     redirect('/error')
   end
 end
+
 get("/user/delete") do
   user = session[:user_id]
   delete_user(user)
   redirect('/')
 end
+
 get("/user/update") do
   slim(:"user/edit_user")
 end
+
 post("/user/update") do
   u_id = session[:user_id]
   name = params[:name]
@@ -97,6 +100,7 @@ post("/user/update") do
   end
 
 end
+
 get("/error") do
   slim(:error)
 end
