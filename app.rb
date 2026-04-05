@@ -7,6 +7,7 @@ also_reload 'model'
 enable :sessions
 require_relative'./model.rb'
 
+
  
 before do
   guest_routes = ['/', '/login', '/user', '/error']
