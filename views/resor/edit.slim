@@ -5,6 +5,6 @@ form action="/resor/#{@selected_resor["id"]}/update" method="post"
     input type="text" name="name" value="#{@selected_resor["name"]}"
     hr
     h3 Taggar
-    input type="text" name="tags" value="#{@selected_resor["description"]}"
+    input type="text" name="description" value="#{@selected_resor["description"]}"
     hr 
     input type="submit" value="updatera"

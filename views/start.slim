@@ -3,14 +3,23 @@ form action="/" method="get"
 hr
 form action="/resor/new" method="post"
  input type="text" name="res_name" placeholder="Namnge en ny resa"
- input type="text" name="tag" placeholder="tags"
+ input type="text" name="description" placeholder="beskrivning"
  input type="submit" value="Lägg till"
-
+hr
+h3 Användare: 
+-if @admin == 1
+  h4 inloggad som admin
+form action="/user/delete" method="get"
+  input type="submit" value="ta bort användare"
+br
+form action="/user/update" method="get"
+  input type="submit" value="updatera användare"
+hr
 - @data.each do |datapunkt|
     hr
     h2 #{datapunkt["name"]}
    
-    
+    h4 Beskrivning: #{datapunkt["description"]} 
     - if @owner == datapunkt["owner"]
         h4 skapad av dig
         form action="/resor/#{datapunkt["id"]}/info" method="get" 
@@ -20,16 +29,16 @@ form action="/resor/new" method="post"
         h4 skapad av: #{datapunkt["u_name"]}
         form action="/resor/#{datapunkt["id"]}/info" method="get" 
           input type="submit" value="deltagar"
-        hr
+        br
         form action="/resor/#{datapunkt["id"]}/join" method="get" 
           input type="submit" value="Gå med"
 
         
-    h4 Tags: #{datapunkt["tags"]}  
-    - if @owner == datapunkt["owner"]
+    br
+    - if @owner == datapunkt["owner"] || @admin == 1
          form action="/resor/#{datapunkt["id"]}/edit" method="get" 
           input type="submit" value="ändra"
-         
+         br
          form action="/resor/#{datapunkt["id"]}/delete" method="post" 
           input type="submit" value="Ta bort"
     hr

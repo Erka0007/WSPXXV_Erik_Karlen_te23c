@@ -17,6 +17,7 @@ end
 def drop_tables(db)
   db.execute('DROP TABLE IF EXISTS resor')
   db.execute('DROP TABLE IF EXISTS users')
+  db.execute('DROP TABLE IF EXISTS tags')
   db.execute('DROP TABLE IF EXISTS resor_users')
 end
 
@@ -24,13 +25,14 @@ def create_tables(db)
   db.execute('CREATE TABLE resor (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               name TEXT NOT NULL, 
-              tags TEXT,
+              description TEXT,
               owner INTEGER)')
 
   db.execute('CREATE TABLE users (
                 u_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 u_name TEXT NOT NULL,
-                pwd_digest TEXT NOT NULL
+                pwd_digest TEXT NOT NULL,
+                admin BOOLEAN
             )')
 
   db.execute('CREATE TABLE resor_users (
@@ -47,7 +49,7 @@ def create_tables(db)
 end
 
 def populate_tables(db)
-  db.execute('INSERT INTO resor (name, tags, owner) VALUES ("Camping", "skogen", 1)')
+
 
   
 end

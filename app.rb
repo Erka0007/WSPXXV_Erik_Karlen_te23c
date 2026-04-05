@@ -3,39 +3,43 @@ require 'slim'
 require 'sqlite3'
 require 'sinatra/reloader'
 require 'bcrypt'
+also_reload 'model'
 enable :sessions
+require_relative'./model.rb'
 
-def data(route)
-  db = SQLite3::Database.new(route)
-  db.results_as_hash = true
-  return db
+ 
+before do
+  guest_routes = ['/', '/login', '/user', '/error']
+  if (session[:user_id] ==  nil) && !guest_routes.include?(request.path_info)
+    redirect('/error')
+  end
 end
 
-get("/") do
-  db = data("db/databas.db")
-  @data = db.execute("SELECT * FROM resor")
-  slim(:user)
+
+
+get("/") do  
+  slim(:"user/add_user")
 end  
 
 post("/user") do
   user = params["user"]
   pwd = params["pwd"]
   pwd_confirm = params["pwd_confirm"]
-  db = data("db/databas.db")
-  result = db.execute("SELECT * FROM users WHERE u_id=?", user)
-
+  
+  result = user_check(user)
+  
   if result.empty?
     if pwd==pwd_confirm
-      pwd_digest=BCrypt::Password.create(pwd)
-      db.execute("INSERT INTO users (u_name, pwd_digest) VALUES (?,?)",[user, pwd_digest])
+      
+      result2 = add_user(user,pwd)
+      session[:admin] = result2[1]    
 
-      result2 = db.execute("SELECT u_id,pwd_digest FROM users WHERE u_name=?",user)
-  
-      if result2.empty?
+      if result2[0].empty?
         redirect('/error')
       end
-      user_id = result2.first["u_id"]
-      session[:user_id] = user_id      
+      user_id = result2[0].first["u_id"]
+      session[:user_id] = user_id    
+       
     
       redirect('/welcome')
     else
@@ -50,73 +54,109 @@ post("/login") do
 
   l_user = params["l_user"]
   l_pwd = params["l_pwd"]
-  db = data("db/databas.db")
-  result = db.execute("SELECT u_id,pwd_digest FROM users WHERE u_name=?",l_user)
-  
+  result = find_person(l_user)
   if result.empty?
     redirect('/error')
   end
 
+  
+
   user_id = result.first["u_id"]
   pwd_digest = result.first["pwd_digest"]
+  admin = result.first["admin"]
 
-  if BCrypt::Password.new(pwd_digest) == l_pwd
+  if password_check(l_pwd,pwd_digest)
     p "test #{user_id}"
     session[:user_id] = user_id
+    session[:admin] = admin.to_i
     p "login #{session[:user_id]}"
     redirect('/welcome')
   else
     redirect('/error')
   end
 end
+get("/user/delete") do
+  user = session[:user_id]
+  delete_user(user)
+  redirect('/')
+end
+get("/user/update") do
+  slim(:"user/edit_user")
+end
+post("/user/update") do
+  u_id = session[:user_id]
+  name = params[:name]
+  pwd = params[:pwd]
+  pwd_confirm= params[:pwd_confirm]
+  if pwd==pwd_confirm
+    edit_user(u_id, name, pwd)
+    redirect('/')
+  else
+    redirect('/error')
+  end
+
+end
+get("/error") do
+  slim(:error)
+end
 
 get("/welcome") do
-  db = data("db/databas.db")
-  @data = db.execute("SELECT * FROM resor
-  INNER JOIN users ON resor.owner = users.u_id")
-
-  @persons = db.execute("SELECT id, u_name FROM resor_users
-  INNER JOIN users ON resor_users.u_id = users.u_id")
+  result = get_data()
+  @data = result[0]
+  @persons = result[1]
+  @admin = session[:admin]
   @owner = session[:user_id]
   p "hej #{session[:user_id]}"
   slim(:start)
 end  
 
 post("/resor/new") do
-  res_name = params[:res_name] # Hämta datan ifrån formuläret
-  tag = params[:tag]
+  res_name = params[:res_name] 
+  description = params[:description]
   owner = session[:user_id]
-  db = data("db/databas.db")
-  db.execute("INSERT INTO resor (name, tags, owner) VALUES (?,?,?)",[res_name, tag, owner])
-  redirect('/welcome') # Hoppa till routen som visar upp alla frukter
+  insert_resor(res_name, description, owner)
+  redirect('/welcome') 
  
 end
 
 get("/resor/:id/edit") do
+  user = session[:user_id].to_i
   id = params[:id].to_i
-  db = data("db/databas.db")
-  @selected_resor = db.execute("SELECT * FROM resor WHERE id = ?", id).first
-  slim(:"resor/edit")
+  @selected_resor = select(id)
+  owner = owner_check(id)
+
+  if owner == user || session[:admin]==1
+    slim(:"resor/edit")
+  else
+    redirect('/error')
+  end
 
 end
 
 post("/resor/:id/update") do
-  db = data("db/databas.db")
+  user = session[:user_id].to_i
   id = params[:id].to_i
   name = params[:name]
-  tags = params[:tags]
-  db.execute("UPDATE resor SET name=?, tags=? WHERE id=?", [name, tags, id])
-  redirect("/welcome")
+  description = params[:description]
+  owner = owner_check(id)
+
+  if owner == user || session[:admin]==1
+    updatera(name, description, id)
+    redirect("/welcome")
+  else
+    redirect('/error')
+  end
+
 end
 
 post("/resor/:id/delete") do
-  db = SQLite3::Database.new("db/databas.db")
+ 
   user = session[:user_id].to_i
   resa = params[:id].to_i
-  owner = db.execute("SELECT owner FROM resor WHERE id=?", resa).first[0]
+  owner = owner_check(resa)
 
-  if owner == user
-    db.execute("DELETE FROM resor WHERE id = ?", resa)
+  if owner == user || session[:admin]==1
+    delete(resa)
     redirect('/welcome')
   else
     redirect('/error')
@@ -125,21 +165,18 @@ post("/resor/:id/delete") do
 end
 
 get("/resor/:id/info") do
-  db = data("db/databas.db")
   resa = params[:id].to_i
-  @persons = db.execute("SELECT id, u_name FROM resor_users
-  INNER JOIN users ON resor_users.u_id = users.u_id WHERE id = ?", resa)
+  @persons = persons(resa)
   slim(:"resor/info")
 end
 
 get("/resor/:id/join") do
-  db = data("db/databas.db")
   resa = params[:id].to_i
   user_join = session[:user_id]
 
-  verify = db.execute("SELECT * FROM resor_users WHERE id = ? AND u_id = ?", [resa, user_join])
+  verify = verify(resa, user_join)
   if verify.empty?
-    db.execute("INSERT INTO resor_users (id, u_id) VALUES (?,?)",[resa, user_join])
+    insert_relation(resa, user_join)
   end
 
   redirect('/welcome')
