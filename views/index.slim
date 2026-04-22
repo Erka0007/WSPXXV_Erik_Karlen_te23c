@@ -22,12 +22,12 @@ hr
     h4 Beskrivning: #{datapunkt["description"]} 
     - if @owner == datapunkt["owner"]
         h4 skapad av dig
-        form action="/resor/#{datapunkt["id"]}/info" method="get" 
+        form action="/resor/#{datapunkt["id"]}/show" method="get" 
           input type="submit" value="deltagar"
     -else
        
         h4 skapad av: #{datapunkt["u_name"]}
-        form action="/resor/#{datapunkt["id"]}/info" method="get" 
+        form action="/resor/#{datapunkt["id"]}/show" method="get" 
           input type="submit" value="deltagar"
         br
         form action="/resor/#{datapunkt["id"]}/join" method="get" 
